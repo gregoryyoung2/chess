@@ -70,36 +70,13 @@ class Chess {
     public func getMoves(x: Int, y: Int) throws -> [(x: Int, y: Int, attack: Bool)]  {
         var moves : [(x: Int, y: Int, attack: Bool)] = []
         
-        guard board[x][y].isLight == lightTurn else { throw ChessError.wrongTurn("It is \(self.lightTurn ? "light" : "dark")'s turn") }
-        guard !board[x][y].isNull else { throw ChessError.nullPiece }
+        guard board[y][x].isLight == lightTurn else { throw ChessError.wrongTurn("It is \(self.lightTurn ? "light" : "dark")'s turn") }
+        guard !board[y][x].isNull else { throw ChessError.nullPiece }
 
         
         switch board[y][x] {
         case .pawn:
-            if y < 7 && self.lightTurn {
-                // If clear ahead, can move one forward
-                if case .null = board[y+1][x] {
-                    moves.append((x: x, y: y + 1, attack: false))
-                    // If first move and clear ahead, can move two forward
-                    if (boardSprite.contents[x][y]?.firstMove ?? false), case .null = board[y+2][x] {
-                        moves.append((x: x, y: y + 2, attack: false))
-                    }
-                }
-                // Check for top left attack
-                if x >= 0 {
-                    if !board[y+1][x-1].isLight && !board[y+1][x-1].isNull && self.lightTurn {
-                        moves.append((x: x-1, y: y + 1, attack: true))
-                    }
-                }
-                // Check for top right attack
-                if x < 8 {
-                    if !board[y+1][x+1].isLight && !board[y+1][x+1].isNull && self.lightTurn {
-                        moves.append((x: x+1, y: y + 1, attack: true))
-                    }
-                }
-                break
-            }
-            if y >= 0 && self.darkTurn {
+            if y > 0 && self.lightTurn {
                 // If clear ahead, can move one forward
                 if case .null = board[y-1][x] {
                     moves.append((x: x, y: y - 1, attack: false))
@@ -109,15 +86,38 @@ class Chess {
                     }
                 }
                 // Check for top left attack
-                if x >= 0 {
-                    if !board[y+1][x-1].isLight && !board[y-1][x-1].isNull && self.lightTurn {
+                if x > 0 {
+                    if !board[y-1][x-1].isLight && !board[y-1][x-1].isNull && self.lightTurn {
                         moves.append((x: x-1, y: y - 1, attack: true))
                     }
                 }
                 // Check for top right attack
-                if x < 8 {
+                if x < 7 {
                     if !board[y-1][x+1].isLight && !board[y-1][x+1].isNull && self.lightTurn {
                         moves.append((x: x+1, y: y - 1, attack: true))
+                    }
+                }
+                break
+            }
+            if y < 7 && self.darkTurn {
+                // If clear ahead, can move one forward
+                if case .null = board[y+1][x] {
+                    moves.append((x: x, y: y + 1, attack: false))
+                    // If first move and clear ahead, can move two forward
+                    if (boardSprite.contents[x][y]?.firstMove ?? false), case .null = board[y+2][x] {
+                        moves.append((x: x, y: y + 2, attack: false))
+                    }
+                }
+                // Check for top left attack
+                if x > 0 {
+                    if !board[y+1][x-1].isLight && !board[y+1][x-1].isNull && self.lightTurn {
+                        moves.append((x: x-1, y: y + 1, attack: true))
+                    }
+                }
+                // Check for top right attack
+                if x < 7 {
+                    if !board[y+1][x+1].isLight && !board[y+1][x+1].isNull && self.lightTurn {
+                        moves.append((x: x+1, y: y + 1, attack: true))
                     }
                 }
                 break
@@ -216,7 +216,23 @@ class Chess {
     }
     
     public func updatePosition(oldX: Int, oldY: Int, newX: Int, newY: Int) {
+        board[newY][newX] = board[oldY][oldX]
+        board[oldY][oldX] = .null
+        boardSprite.setBoard(board: board)
         
+        boardSprite.contents[newX][newY]?.firstMove = false
+    }
+    
+    public func resetBoard() {
+        boardSprite.setBoard(board: board)
+    }
+    
+    public func showMoves(moves: [(x: Int, y: Int, attack: Bool)]) {
+        self.boardSprite.setHints(possibleMoves: moves)
+    }
+    
+    public func removeMoves() {
+        self.boardSprite.removeHints()
     }
     
     private func inBounds(_ x: Int, _ y: Int) -> Bool {

@@ -35,7 +35,7 @@ class Board : SKNode {
         
     }
     
-    func setPiece(x: Int, y: Int, piece: Chess.Piece) {
+    public func setPiece(x: Int, y: Int, piece: Chess.Piece) {
         
         if case .null = piece {
             guard let child = contents[x][y] else { return }
@@ -50,7 +50,15 @@ class Board : SKNode {
         }
     }
     
-    func setBoard(board : [[Chess.Piece]]) {
+    public func setBoard(board : [[Chess.Piece]]) {
+        
+        for row in contents {
+            for piece in row {
+                guard let piece = piece else { continue }
+                piece.removeFromParent()
+            }
+        }
+        
         for y in 0..<8 {
             for x in 0..<8 {
                 setPiece(x: x, y: y, piece: board[y][x])
@@ -58,13 +66,47 @@ class Board : SKNode {
         }
     }
     
+    public func setHints(possibleMoves: [(x: Int, y: Int, attack: Bool)]) {
+        for point in possibleMoves {
+            let coord = pointToCoordinate(x: point.x, y: point.y)
+            
+            let circle = SKShapeNode(circleOfRadius: self.size/8*0.15)
+            circle.strokeColor = SKColor.clear
+            circle.fillColor = point.attack ? SKColor.red : SKColor.lightGray
+            
+            circle.position = coord
+            
+            hints.append(circle)
+            
+            self.addChild(circle)
+            
+            
+        }
+    }
+    
+    public func removeHints() {
+        for node in hints {
+            node.removeFromParent()
+        }
+        hints = []
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     
+    private func pointToCoordinate(x: Int, y: Int) -> CGPoint {
+        let drawX : CGFloat = CGFloat(x)
+        let drawY : CGFloat = 7.0 - CGFloat(y)
+        
+        return CGPoint(x: -size/2.0 + drawX * self.size/8 + self.size/8/2, y: -size/2.0 + drawY * self.size/8 + self.size/8/2)
+    }
+    
     private(set) var size : CGFloat = 0
     
     private(set) var contents : [[Piece?]] = []
+    
+    private(set) var hints : [SKShapeNode] = []
     
 }

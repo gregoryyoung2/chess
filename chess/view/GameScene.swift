@@ -44,6 +44,8 @@ class GameScene: SKScene {
                             
                             self.activeMoves = try self.chess?.getMoves(x: coords.x, y: coords.y)
                             
+                            self.chess?.showMoves(moves: self.activeMoves ?? [])
+                            
                         }
                         catch let error {
                             print("ERROR: \(error)")
@@ -67,13 +69,8 @@ class GameScene: SKScene {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
-        
-//        guard let board = self.chess?.boardSprite else { return }
-//
-//        guard let touch = touches.first?.location(in: board) else { return }
-//
-//        guard let currCoord = self.chess?.getCoords(touch.x, touch.y) else { return }
+    
+        self.chess?.removeMoves()
         
         var found = false
         
@@ -94,6 +91,9 @@ class GameScene: SKScene {
 
         if found {
             self.chess?.updatePosition(oldX: activeCoord.x, oldY: activeCoord.y, newX: newCoord.x, newY: newCoord.y)
+        }
+        else {
+            self.chess?.resetBoard()
         }
         
         
