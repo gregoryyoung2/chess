@@ -66,9 +66,9 @@ class Board : SKNode {
         }
     }
     
-    public func setHints(possibleMoves: [(x: Int, y: Int, attack: Bool)]) {
+    public func setHints(possibleMoves: [Chess.ChessMove]) {
         for point in possibleMoves {
-            let coord = pointToCoordinate(x: point.x, y: point.y)
+            let coord = pointToCoordinate(point.dest)
             
             let circle = SKShapeNode(circleOfRadius: self.size/8*0.15)
             circle.strokeColor = SKColor.clear
@@ -95,6 +95,10 @@ class Board : SKNode {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
+    private func pointToCoordinate(_ point: Chess.Point) -> CGPoint {
+        return self.pointToCoordinate(x: point.x, y: point.y)
+    }
     
     private func pointToCoordinate(x: Int, y: Int) -> CGPoint {
         let drawX : CGFloat = CGFloat(x)

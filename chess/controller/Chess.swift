@@ -261,7 +261,7 @@ class Chess {
         boardSprite.setBoard(board: board)
     }
     
-    public func showMoves(moves: [(x: Int, y: Int, attack: Bool)]) {
+    public func showMoves(moves: [ChessMove]) {
         self.boardSprite.setHints(possibleMoves: moves)
     }
     

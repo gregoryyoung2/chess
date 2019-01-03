@@ -6,7 +6,7 @@ class GameScene: SKScene {
     private var chess : Chess?
     
     private var activePiece : Piece?
-    private var activeMoves : [(x:Int, y:Int, attack:Bool)]?
+    private var activeMoves : [Chess.ChessMove] = []
     private var activeCoord : (x:Int, y:Int)?
     
     override func sceneDidLoad() {
@@ -46,9 +46,9 @@ class GameScene: SKScene {
                             
                             guard let coords = self.activeCoord else { continue }
                             
-                            self.activeMoves = try self.chess?.getMoves(x: coords.x, y: coords.y)
+                            self.activeMoves = try self.chess?.getMoves(x: coords.x, y: coords.y) ?? []
                             
-                            self.chess?.showMoves(moves: self.activeMoves ?? [])
+                            self.chess?.showMoves(moves: self.activeMoves)
                             
                         }
                         catch let error {
@@ -78,8 +78,6 @@ class GameScene: SKScene {
         
         var found = false
         
-        guard let moves = activeMoves else { return }
-        
         guard let board = self.chess?.boardSprite else { return }
         
         guard let location = touches.first?.location(in: board) else { return }
@@ -88,8 +86,8 @@ class GameScene: SKScene {
         
         guard let activeCoord = self.activeCoord else { return }
         
-        for move in moves {
-            if move.x == newCoord.x && move.y == newCoord.y {
+        for move in self.activeMoves {
+            if move.dest.x == newCoord.x && move.dest.y == newCoord.y {
                 found = true
                 break
             }
@@ -104,7 +102,7 @@ class GameScene: SKScene {
         
         
         self.activePiece = nil
-        self.activeMoves = nil
+        self.activeMoves = []
         self.activeCoord = nil
     }
 

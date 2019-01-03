@@ -21,7 +21,7 @@ class RandomAI : Player {
                 let moves = try chess.getMoves(x: x, y: y)
                 guard !moves.isEmpty else { throw RandError.zeroMoves }
                 let move = moves[Int.random(in: 0..<moves.count)]
-                chess.updatePosition(oldX: x, oldY: y, newX: move.x, newY: move.y)
+                chess.updatePosition(oldX: x, oldY: y, newX: move.dest.x, newY: move.dest.y)
             }
             catch {
                 x = Int.random(in: 0..<8)
