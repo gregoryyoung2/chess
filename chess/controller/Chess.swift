@@ -51,6 +51,30 @@ class Chess {
         case somethingWrong
     }
     
+    struct Point {
+        
+        public init (_ x: Int, _ y: Int) {
+            self.x = x
+            self.y = y
+        }
+        
+        public var x: Int
+        public var y: Int
+    }
+    
+    struct ChessMove {
+        
+        public init (origin o : Point, dest d : Point, attack a : Bool = false) {
+            self.origin = o
+            self.dest = d
+            self.attack = a
+        }
+        
+        public var origin : Point
+        public var dest : Point
+        public var attack : Bool
+    }
+    
     public init(vh: CGFloat, vw: CGFloat, lightIsBottom lb: Bool = true) {
         
         self.viewHeight = vh
@@ -82,151 +106,127 @@ class Chess {
         }
     }
     
-    public func getMoves(x: Int, y: Int) throws -> [(x: Int, y: Int, attack: Bool)]  {
-        var moves : [(x: Int, y: Int, attack: Bool)] = []
+    public func getMoves(x: Int, y: Int) throws -> [ChessMove]  {
+        var moves : [ChessMove] = []
         
         guard board[y][x].isLight == lightTurn else { throw ChessError.wrongTurn("It is \(self.lightTurn ? "light" : "dark")'s turn") }
         guard !board[y][x].isNull else { throw ChessError.nullPiece }
 
+        let origin = Point(x, y)
         
         switch board[y][x] {
         case .pawn:
             print("Calculating moves for pawn...")
-            if y > 0 && self.lightTurn {
-                // If clear ahead, can move one forward
-                if case .null = board[y-1][x] {
-                    moves.append((x: x, y: y - 1, attack: false))
-                    // If first move and clear ahead, can move two forward
-                    if (y == 6), case .null = board[y-2][x] {
-                        moves.append((x: x, y: y - 2, attack: false))
-                    }
-                }
-                // Check for top left attack
-                if x > 0 {
-                    if !board[y-1][x-1].isLight && !board[y-1][x-1].isNull && self.lightTurn {
-                        moves.append((x: x-1, y: y - 1, attack: true))
-                    }
-                }
-                // Check for top right attack
-                if x < 7 {
-                    if !board[y-1][x+1].isLight && !board[y-1][x+1].isNull && self.lightTurn {
-                        moves.append((x: x+1, y: y - 1, attack: true))
-                    }
-                }
-                break
-            }
-            if y < 7 && self.darkTurn {
-                // If clear ahead, can move one forward
-                if case .null = board[y+1][x] {
-                    moves.append((x: x, y: y + 1, attack: false))
-                    // If first move and clear ahead, can move two forward
-                    if ( y == 1 ), case .null = board[y+2][x] {
-                        moves.append((x: x, y: y + 2, attack: false))
-                    }
-                }
-                // Check for top left attack
-                if x > 0 {
-                    if !board[y+1][x-1].isLight && !board[y+1][x-1].isNull && self.lightTurn {
-                        moves.append((x: x-1, y: y + 1, attack: true))
-                    }
-                }
-                // Check for top right attack
-                if x < 7 {
-                    if !board[y+1][x+1].isLight && !board[y+1][x+1].isNull && self.lightTurn {
-                        moves.append((x: x+1, y: y + 1, attack: true))
-                    }
-                }
-                break
-            }
+            findPawnMoves(origin: origin, moves: &moves)
         case .bishop:
             print("Calculating moves for bishop...")
             let change = [[1,1], [-1, 1], [-1,-1], [1,-1]]
-            for i in 0..<change.count {
-                var move = (x: x + change[i][0], y: y + change[i][1], attack: false)
-                while (true) {
-                    if !inBounds(move.x, move.y) { break }
-                    if case .null = board[move.y][move.x] {
-                        moves.append(move);
-                        move.x += change[i][0]
-                        move.y += change[i][1]
-                    }
-                    else if board[move.y][move.x].isLight != lightTurn {
-                        move.attack = true
-                        moves.append(move)
-                        break
-                    }
-                    else {
-                        break
-                    }
-                }
-            }
+            findLineMoves(origin: origin, change: change, moves: &moves)
             break
         case .knight:
             print("Calculating moves for knight...")
             let change = [[2,1], [-2,1], [-2,-1], [2,-1], [1,2], [-1,2], [1,-2], [-1, -2]]
-            for i in change {
-                if !inBounds(x + i[0], y + i[1]) { continue }
-                if board[y+i[1]][x+i[0]].isLight == self.lightTurn { continue }
-                moves.append((x: x + i[0], y: y + i[1], attack: !board[y+i[1]][x+i[0]].isNull && board[y+i[1]][x+i[0]].isLight != self.lightTurn))
-            }
+            findSingleMoves(origin: origin, change: change, moves: &moves)
             break
         case .rook:
             print("Calculating moves for rook...")
             let change = [[0,1], [1,0], [-1, 0], [0, -1]]
-            for i in 0..<change.count {
-                var move = (x: x + change[i][0], y: y + change[i][1], attack: false)
-                while (true) {
-                    if !inBounds(move.x, move.y) { break }
-                    if case .null = board[move.y][move.x] {
-                        moves.append(move);
-                        move.x += change[i][0]
-                        move.y += change[i][1]
-                    }
-                    else if board[move.y][move.x].isLight != lightTurn {
-                        move.attack = true
-                        moves.append(move)
-                        break
-                    }
-                    else {
-                        break
-                    }
-                }
-            }
+            findLineMoves(origin: origin, change: change, moves: &moves)
+            break
         case .queen:
             print("Calculating moves for queen...")
             let change = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
-            for i in 0..<change.count {
-                var move = (x: x + change[i][0], y: y + change[i][1], attack: false)
-                while (true) {
-                    if !inBounds(move.x, move.y) { break }
-                    if case .null = board[move.y][move.x] {
-                        moves.append(move);
-                        move.x += change[i][0]
-                        move.y += change[i][1]
-                    }
-                    else if board[move.y][move.x].isLight != lightTurn {
-                        move.attack = true
-                        moves.append(move)
-                        break
-                    }
-                    else {
-                        break
-                    }
-                }
-            }
+            findLineMoves(origin: origin, change: change, moves: &moves)
+            break
         case .king:
             print("Calculating moves for king...")
             let change = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
-            for i in change {
-                if !inBounds(x + i[0], y + i[1]) { continue }
-                if board[y+i[1]][x+i[0]].isLight == self.lightTurn { continue }
-                moves.append((x: x + i[0], y: y + i[1], attack: !board[y+i[1]][x+i[0]].isNull && board[y+i[1]][x+i[0]].isLight != self.lightTurn))
-            }
+            findSingleMoves(origin: origin, change: change, moves: &moves)
+            break
         case .null:
             throw ChessError.somethingWrong
         }
         
         return moves
+    }
+    
+    private func findPawnMoves(origin: Point, moves: inout [ChessMove]) {
+        let x = origin.x
+        let y = origin.y
+        if y > 0 && self.lightTurn {
+            // If clear ahead, can move one forward
+            if case .null = board[y-1][x] {
+                moves.append(ChessMove(origin: origin, dest: Point(x, y - 1), attack: false))
+                // If first move and clear ahead, can move two forward
+                if (y == 6), case .null = board[y-2][x] {
+                    moves.append(ChessMove(origin: origin, dest: Point(x, y - 2), attack: false))
+                }
+            }
+            // Check for top left attack
+            if x > 0 {
+                if !board[y-1][x-1].isLight && !board[y-1][x-1].isNull && self.lightTurn {
+                    moves.append(ChessMove(origin: origin, dest: Point(x - 1, y - 1), attack: true))
+                }
+            }
+            // Check for top right attack
+            if x < 7 {
+                if !board[y-1][x+1].isLight && !board[y-1][x+1].isNull && self.lightTurn {
+                    moves.append(ChessMove(origin: origin, dest: Point(x + 1, y - 1), attack: true))
+                }
+            }
+        }
+        else if y < 7 && self.darkTurn {
+            // If clear ahead, can move one forward
+            if case .null = board[y+1][x] {
+                moves.append(ChessMove(origin: origin, dest: Point(x, y + 1), attack: false))
+                // If first move and clear ahead, can move two forward
+                if ( y == 1 ), case .null = board[y+2][x] {
+                    moves.append(ChessMove(origin: origin, dest: Point(x, y + 2), attack: false))
+                }
+            }
+            // Check for top left attack
+            if x > 0 {
+                if !board[y+1][x-1].isLight && !board[y+1][x-1].isNull && self.lightTurn {
+                    moves.append(ChessMove(origin: origin, dest: Point(x - 1, y + 1), attack: true))
+                }
+            }
+            // Check for top right attack
+            if x < 7 {
+                if !board[y+1][x+1].isLight && !board[y+1][x+1].isNull && self.lightTurn {
+                    moves.append(ChessMove(origin: origin, dest: Point(x + 1, y + 1), attack: true))
+                }
+            }
+        }
+    }
+    
+    private func findLineMoves(origin: Point, change : [[Int]], moves : inout [ChessMove]) {
+        for i in 0..<change.count {
+            var move = ChessMove(origin: origin, dest: Point(origin.x + change[i][0], origin.y + change[i][1]), attack: false)
+            while (true) {
+                if !inBounds(move.dest.x, move.dest.y) { break }
+                if case .null = board[move.dest.y][move.dest.x] {
+                    moves.append(move);
+                    move.dest.x += change[i][0]
+                    move.dest.y += change[i][1]
+                }
+                else if board[move.dest.y][move.dest.x].isLight != lightTurn {
+                    move.attack = true
+                    moves.append(move)
+                    break
+                }
+                else {
+                    break
+                }
+            }
+        }
+    }
+    
+    private func findSingleMoves(origin o: Point, change: [[Int]], moves: inout [ChessMove]) {
+        for i in change {
+            if !inBounds(o.x + i[0], o.y + i[1]) { continue }
+            if board[o.y+i[1]][o.x+i[0]].isLight == self.lightTurn { continue }
+            moves.append(ChessMove(origin: o, dest: Point(o.x + i[0], o.y + i[1]), attack: !board[o.y+i[1]][o.x+i[0]].isNull && board[o.y+i[1]][o.x+i[0]].isLight != self.lightTurn))
+        }
     }
     
     public func getCoords(_ x: CGFloat, _ y: CGFloat) -> (x: Int, y: Int) {
@@ -273,7 +273,6 @@ class Chess {
         if x < 8 && x >= 0 && y < 8 && y >= 0 { return true }
         else { return false }
     }
-    
     
     
     private func initBoard() {
