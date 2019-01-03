@@ -30,6 +30,10 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
         guard let board = self.chess?.boardSprite else { return }
+        
+        
+        
+        guard chess?.lightTurn ?? false else { return }
 
         for touch in touches {
             for row in board.contents {

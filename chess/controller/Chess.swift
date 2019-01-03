@@ -65,6 +65,21 @@ class Chess {
         
         self.boardSprite.setBoard(board: board)
         
+        
+        players.append(HumanPlayer())
+        players.append(RandomAI(isLight: false, chess: self))
+        
+    }
+    
+    public func nextTurn() {
+        if lightTurn {
+            print("Light's turn")
+            return
+        }
+        else {
+            print("Dark's turn")
+            players[1].move()
+        }
     }
     
     public func getMoves(x: Int, y: Int) throws -> [(x: Int, y: Int, attack: Bool)]  {
@@ -82,7 +97,7 @@ class Chess {
                 if case .null = board[y-1][x] {
                     moves.append((x: x, y: y - 1, attack: false))
                     // If first move and clear ahead, can move two forward
-                    if (y == 1), case .null = board[y-2][x] {
+                    if (y == 6), case .null = board[y-2][x] {
                         moves.append((x: x, y: y - 2, attack: false))
                     }
                 }
@@ -105,7 +120,7 @@ class Chess {
                 if case .null = board[y+1][x] {
                     moves.append((x: x, y: y + 1, attack: false))
                     // If first move and clear ahead, can move two forward
-                    if ( y==6 ), case .null = board[y+2][x] {
+                    if ( y == 1 ), case .null = board[y+2][x] {
                         moves.append((x: x, y: y + 2, attack: false))
                     }
                 }
@@ -236,6 +251,10 @@ class Chess {
         boardSprite.setBoard(board: board)
         
         boardSprite.contents[newX][newY]?.firstMove = false
+        
+        lightTurn = lightTurn != true
+        
+        nextTurn()
     }
     
     public func resetBoard() {
@@ -298,5 +317,7 @@ class Chess {
     
     private(set) var board : [[Piece]] = []
    
+    private(set) var players : [Player] = []
+    
     
 }
