@@ -76,12 +76,13 @@ class Chess {
         
         switch board[y][x] {
         case .pawn:
+            print("Calculating moves for pawn...")
             if y > 0 && self.lightTurn {
                 // If clear ahead, can move one forward
                 if case .null = board[y-1][x] {
                     moves.append((x: x, y: y - 1, attack: false))
                     // If first move and clear ahead, can move two forward
-                    if (boardSprite.contents[x][y]?.firstMove ?? false), case .null = board[y-2][x] {
+                    if (y == 1), case .null = board[y-2][x] {
                         moves.append((x: x, y: y - 2, attack: false))
                     }
                 }
@@ -104,7 +105,7 @@ class Chess {
                 if case .null = board[y+1][x] {
                     moves.append((x: x, y: y + 1, attack: false))
                     // If first move and clear ahead, can move two forward
-                    if (boardSprite.contents[x][y]?.firstMove ?? false), case .null = board[y+2][x] {
+                    if ( y==6 ), case .null = board[y+2][x] {
                         moves.append((x: x, y: y + 2, attack: false))
                     }
                 }
@@ -123,6 +124,7 @@ class Chess {
                 break
             }
         case .bishop:
+            print("Calculating moves for bishop...")
             let change = [[1,1], [-1, 1], [-1,-1], [1,-1]]
             for i in 0..<change.count {
                 var move = (x: x + change[i][0], y: y + change[i][1], attack: false)
@@ -138,10 +140,14 @@ class Chess {
                         moves.append(move)
                         break
                     }
+                    else {
+                        break
+                    }
                 }
             }
             break
         case .knight:
+            print("Calculating moves for knight...")
             let change = [[2,1], [-2,1], [-2,-1], [2,-1], [1,2], [-1,2], [1,-2], [-1, -2]]
             for i in change {
                 if !inBounds(x + i[0], y + i[1]) { continue }
@@ -150,6 +156,7 @@ class Chess {
             }
             break
         case .rook:
+            print("Calculating moves for rook...")
             let change = [[0,1], [1,0], [-1, 0], [0, -1]]
             for i in 0..<change.count {
                 var move = (x: x + change[i][0], y: y + change[i][1], attack: false)
@@ -165,9 +172,13 @@ class Chess {
                         moves.append(move)
                         break
                     }
+                    else {
+                        break
+                    }
                 }
             }
         case .queen:
+            print("Calculating moves for queen...")
             let change = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
             for i in 0..<change.count {
                 var move = (x: x + change[i][0], y: y + change[i][1], attack: false)
@@ -183,9 +194,13 @@ class Chess {
                         moves.append(move)
                         break
                     }
+                    else {
+                        break
+                    }
                 }
             }
         case .king:
+            print("Calculating moves for king...")
             let change = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
             for i in change {
                 if !inBounds(x + i[0], y + i[1]) { continue }

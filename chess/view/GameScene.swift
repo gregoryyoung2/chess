@@ -76,14 +76,16 @@ class GameScene: SKScene {
         
         guard let moves = activeMoves else { return }
         
+        guard let board = self.chess?.boardSprite else { return }
+        
+        guard let location = touches.first?.location(in: board) else { return }
+        
+        guard let newCoord = self.chess?.getCoords(location.x, location.y) else { return }
+        
         guard let activeCoord = self.activeCoord else { return }
         
-        var newCoord : (x: Int, y: Int) = (x: 0, y: 0)
-        
         for move in moves {
-            if move.x == activeCoord.x && move.y == activeCoord.y {
-                newCoord.x = move.x
-                newCoord.y = move.y
+            if move.x == newCoord.x && move.y == newCoord.y {
                 found = true
                 break
             }

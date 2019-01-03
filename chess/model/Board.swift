@@ -43,7 +43,7 @@ class Board : SKNode {
         }
         else {
             contents[x][y] = Piece(type: piece, size: self.size/8 * 0.9)
-            let drawX : CGFloat = 7.0 - CGFloat(x)
+            let drawX : CGFloat =  CGFloat(x)
             let drawY : CGFloat = 7.0 - CGFloat(y)
             contents[x][y]!.position = CGPoint(x: -size/2.0 + drawX * self.size/8 + self.size/8/2, y: -size/2.0 + drawY * self.size/8 + self.size/8/2)
             self.addChild(contents[x][y]!)
