@@ -43,12 +43,29 @@ class Chess {
                 }
             }
         }
+        
+        public static func ==(lhs: Piece, rhs: Piece) -> Bool {
+            switch (lhs, rhs) {
+            case let (.pawn(l), .pawn(r)),
+                 let (.bishop(l), .bishop(r)),
+                 let (.knight(l), .knight(r)),
+                 let (.rook(l), .rook(r)),
+                 let (.queen(l), .queen(r)),
+                 let (.king(l), .king(r)):
+                return l == r
+            case (.null, .null):
+                return true
+            default:
+                return false
+            }
+        }
     }
     
     public enum ChessError : Error {
         case wrongTurn(String)
         case nullPiece
         case somethingWrong
+        case pieceNotFound
     }
     
     struct Point {
@@ -120,28 +137,23 @@ class Chess {
             findPawnMoves(origin: origin, moves: &moves)
         case .bishop:
             print("Calculating moves for bishop...")
-            let change = [[1,1], [-1, 1], [-1,-1], [1,-1]]
-            findLineMoves(origin: origin, change: change, moves: &moves)
+            findLineMoves(origin: origin, change: self.diagChange, moves: &moves)
             break
         case .knight:
             print("Calculating moves for knight...")
-            let change = [[2,1], [-2,1], [-2,-1], [2,-1], [1,2], [-1,2], [1,-2], [-1, -2]]
-            findSingleMoves(origin: origin, change: change, moves: &moves)
+            findSingleMoves(origin: origin, change: self.knightChange, moves: &moves)
             break
         case .rook:
             print("Calculating moves for rook...")
-            let change = [[0,1], [1,0], [-1, 0], [0, -1]]
-            findLineMoves(origin: origin, change: change, moves: &moves)
+            findLineMoves(origin: origin, change: self.plusChange, moves: &moves)
             break
         case .queen:
             print("Calculating moves for queen...")
-            let change = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
-            findLineMoves(origin: origin, change: change, moves: &moves)
+            findLineMoves(origin: origin, change: self.eightChange, moves: &moves)
             break
         case .king:
             print("Calculating moves for king...")
-            let change = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
-            findSingleMoves(origin: origin, change: change, moves: &moves)
+            findSingleMoves(origin: origin, change: self.eightChange, moves: &moves)
             break
         case .null:
             throw ChessError.somethingWrong
@@ -228,6 +240,126 @@ class Chess {
             moves.append(ChessMove(origin: o, dest: Point(o.x + i[0], o.y + i[1]), attack: !board[o.y+i[1]][o.x+i[0]].isNull && board[o.y+i[1]][o.x+i[0]].isLight != self.lightTurn))
         }
     }
+    
+    public func getAllMoves(forLight light : Bool? = nil) -> [ChessMove] {
+        
+        let prevLightTurn = self.lightTurn
+        
+        if let isLight = light {
+            self.lightTurn = isLight
+        }
+        
+        var moves : [ChessMove] = []
+        
+        for r in 0..<self.board.count {
+            for c in 0..<self.board[r].count {
+                do {
+                    moves.append(contentsOf: try self.getMoves(x: c, y: r))
+                }
+                catch {
+                    continue
+                }
+            }
+        }
+        
+        self.lightTurn = prevLightTurn
+        
+        return moves
+        
+    }
+    
+    private func pruneCheck(origin : Point, moves: [ChessMove]) {
+        
+    }
+    
+    public func isInCheck(light : Bool) -> Bool {
+        
+        let opposing = light != true
+        
+        do {
+            
+            let kingPos = try findPiece(piece: .king(light))
+            
+            // First, check for a threatening knight
+            for change in self.knightChange {
+                if board[kingPos.y + change[1]][kingPos.x+change[0]] == .knight(opposing) {
+                    return true
+                }
+            }
+            
+            // Now, lets check for kings (this is only helpful for pruning)
+            for change in self.eightChange {
+                if board[kingPos.y + change[1]][kingPos.x+change[0]] == .king(opposing) {
+                    return true
+                }
+            }
+            
+            // Now, lets check the diagonals for queens and bishops
+            for change in self.diagChange {
+                var current = Point(kingPos.x + change[0], kingPos.y + change[1])
+                while (true) {
+                    if !inBounds(current.x, current.y) { break }
+                    if case .null = board[current.y][current.x] {
+                        current.x += change[0]
+                        current.y += change[1]
+                    }
+                    else if board[current.y][current.x] == .queen(opposing) || board[current.y][current.x] == .bishop(opposing) {
+                        return true
+                    }
+                    else {
+                        break
+                    }
+                }
+            }
+            
+            // Now, check the horiz/verts for queens and rooks
+            for change in self.plusChange {
+                var current = Point(kingPos.x + change[0], kingPos.y + change[1])
+                while (true) {
+                    if !inBounds(current.x, current.y) { break }
+                    if case .null = board[current.y][current.x] {
+                        current.x += change[0]
+                        current.y += change[1]
+                    }
+                    else if board[current.y][current.x] == .queen(opposing) || board[current.y][current.x] == .rook(opposing) {
+                        return true
+                    }
+                    else {
+                        break
+                    }
+                }
+            }
+            
+            // Lastly, the pawns...
+            let y = kingPos.y + (light ? -1 : 1)
+            
+            if inBounds(kingPos.x-1, y) && board[y][kingPos.x-1] == .pawn(opposing) {
+                return true
+            }
+            
+            if inBounds(kingPos.x+1, y) && board[y][kingPos.x+1] == .pawn(opposing) {
+                return true
+            }
+            
+        }
+        catch {
+            print("ERROR: Could not find king")
+        }
+        
+        return false
+    }
+    
+    public func findPiece(piece: Piece) throws -> Point {
+        for r in 0..<board.count {
+            for c in 0..<board[r].count {
+                if piece == board[r][c] {
+                    return Point(c,r)
+                }
+            }
+        }
+        throw ChessError.pieceNotFound
+    }
+    
     
     public func getCoords(_ x: CGFloat, _ y: CGFloat) -> (x: Int, y: Int) {
         
@@ -318,5 +450,9 @@ class Chess {
    
     private(set) var players : [Player] = []
     
+    private let diagChange = [[1,1], [-1, 1], [-1,-1], [1,-1]]
+    private let plusChange = [[0,1], [1,0], [-1, 0], [0, -1]]
+    private let eightChange = [[0,1], [1,0], [-1, 0], [0, -1], [1,1], [-1, 1], [-1,-1], [1,-1]]
+    private let knightChange = [[2,1], [-2,1], [-2,-1], [2,-1], [1,2], [-1,2], [1,-2], [-1, -2]]
     
 }
