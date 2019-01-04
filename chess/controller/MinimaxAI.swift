@@ -24,7 +24,7 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = prev
             board[move.origin.y][move.origin.x] = .null
             
-            let result = minimax(depth: 2, board: board, isLight: isLight, α: Int.min, β: Int.max)
+            let result = minimax(depth: 3, board: board, isLight: isLight, α: Int.min, β: Int.max)
             
             if result > bestScore {
                 bestMove = move
@@ -59,9 +59,12 @@ class MinimaxAI : Player {
         
     }
     
-    private func minimax(depth: Int, board: [[Chess.Piece]], isLight: Bool, α alpha: Int, β beta: Int) -> Int {
+    private func minimax(depth: Int, board: [[Chess.Piece]], isLight: Bool, α: Int, β: Int) -> Int {
         
         var board = board
+        
+        var alpha = α
+        var beta = β
         
         if depth == 0 {
             return self.evaluate(board: board) * (isLight ? 1 : -1)
@@ -87,8 +90,8 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = dest
             board[move.origin.y][move.origin.x] = prev
             
-            let alpha = isLight ? max(alpha, bestMove) : alpha
-            let beta = isLight ? beta : min(beta, bestMove)
+            alpha = isLight ? max(alpha, bestMove) : alpha
+            beta = isLight ? beta : min(beta, bestMove)
             
             if beta <= alpha {
                 return bestMove
