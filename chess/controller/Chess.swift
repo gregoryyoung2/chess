@@ -59,6 +59,26 @@ class Chess {
                 return false
             }
         }
+        
+        public func getBaseValue() -> Int {
+            switch self {
+            case .null:
+                return 0
+            case .pawn(let l):
+                return 100 * (l ? 1 : -1)
+            case .bishop(let l):
+                return 333 * (l ? 1 : -1)
+            case .knight(let l):
+                return 320 * (l ? 1 : -1)
+            case .rook(let l):
+                return 510 * (l ? 1 : -1)
+            case .queen(let l):
+                return 880 * (l ? 1 : -1)
+            case .king(let l):
+                return 8800 * (l ? 1 : -1)
+            }
+        }
+        
     }
     
     public enum ChessError : Error {
@@ -128,7 +148,10 @@ class Chess {
         }
     }
     
-    public func getMoves(x: Int, y: Int) throws -> [ChessMove]  {
+    public func getMoves(x: Int, y: Int, board: [[Piece]]? = nil) throws -> [ChessMove]  {
+        
+        var board = board ?? self.board
+        
         var moves : [ChessMove] = []
         
         guard board[y][x].isLight == lightTurn else { throw ChessError.wrongTurn("It is \(self.lightTurn ? "light" : "dark")'s turn") }
@@ -139,37 +162,40 @@ class Chess {
         switch board[y][x] {
         case .pawn:
             print("Calculating moves for pawn...")
-            findPawnMoves(origin: origin, moves: &moves)
+            findPawnMoves(origin: origin, moves: &moves, board: board)
         case .bishop:
             print("Calculating moves for bishop...")
-            findLineMoves(origin: origin, change: self.diagChange, moves: &moves)
+            findLineMoves(origin: origin, change: self.diagChange, moves: &moves, board: board)
             break
         case .knight:
             print("Calculating moves for knight...")
-            findSingleMoves(origin: origin, change: self.knightChange, moves: &moves)
+            findSingleMoves(origin: origin, change: self.knightChange, moves: &moves, board: board)
             break
         case .rook:
             print("Calculating moves for rook...")
-            findLineMoves(origin: origin, change: self.plusChange, moves: &moves)
+            findLineMoves(origin: origin, change: self.plusChange, moves: &moves, board: board)
             break
         case .queen:
             print("Calculating moves for queen...")
-            findLineMoves(origin: origin, change: self.eightChange, moves: &moves)
+            findLineMoves(origin: origin, change: self.eightChange, moves: &moves, board: board)
             break
         case .king:
             print("Calculating moves for king...")
-            findSingleMoves(origin: origin, change: self.eightChange, moves: &moves)
+            findSingleMoves(origin: origin, change: self.eightChange, moves: &moves, board: board)
             break
         case .null:
             throw ChessError.somethingWrong
         }
         
-        self.pruneCheck(moves: &moves)
+        self.pruneCheck(moves: &moves, board: board)
         
         return moves
     }
     
-    private func findPawnMoves(origin: Point, moves: inout [ChessMove]) {
+    private func findPawnMoves(origin: Point, moves: inout [ChessMove], board : [[Piece]]? = nil) {
+        
+        let board = board ?? self.board
+        
         let x = origin.x
         let y = origin.y
         if y > 0 && self.lightTurn {
@@ -219,7 +245,10 @@ class Chess {
         
     }
     
-    private func findLineMoves(origin: Point, change : [[Int]], moves : inout [ChessMove]) {
+    private func findLineMoves(origin: Point, change : [[Int]], moves : inout [ChessMove], board : [[Piece]]? = nil) {
+        
+        let board = board ?? self.board
+        
         for i in 0..<change.count {
             var move = ChessMove(origin: origin, dest: Point(origin.x + change[i][0], origin.y + change[i][1]), attack: false)
             while (true) {
@@ -241,7 +270,10 @@ class Chess {
         }
     }
     
-    private func findSingleMoves(origin o: Point, change: [[Int]], moves: inout [ChessMove]) {
+    private func findSingleMoves(origin o: Point, change: [[Int]], moves: inout [ChessMove], board : [[Piece]]? = nil) {
+        
+        let board = board ?? self.board
+        
         for i in change {
             if !inBounds(o.x + i[0], o.y + i[1]) { continue }
             if board[o.y+i[1]][o.x+i[0]].isLight == self.lightTurn { continue }
@@ -249,7 +281,9 @@ class Chess {
         }
     }
     
-    public func getAllMoves(forLight light : Bool? = nil) -> [ChessMove] {
+    public func getAllMoves(forLight light : Bool? = nil, board : [[Piece]]? = nil) -> [ChessMove] {
+        
+        let board = board ?? self.board
         
         let prevLightTurn = self.lightTurn
         
@@ -262,7 +296,7 @@ class Chess {
         for r in 0..<self.board.count {
             for c in 0..<self.board[r].count {
                 do {
-                    moves.append(contentsOf: try self.getMoves(x: c, y: r))
+                    moves.append(contentsOf: try self.getMoves(x: c, y: r, board: board))
                 }
                 catch {
                     continue
@@ -276,34 +310,38 @@ class Chess {
         
     }
     
-    private func pruneCheck(moves: inout [ChessMove]) {
+    private func pruneCheck(moves: inout [ChessMove], board : [[Piece]]? = nil) {
+        
+        var board = board ?? self.board
         
         for i in (0..<moves.count).reversed() {
             let move = moves[i]
-            let prev = self.board[move.origin.y][move.origin.x]
-            let dest = self.board[move.dest.y][move.dest.x]
+            let prev = board[move.origin.y][move.origin.x]
+            let dest = board[move.dest.y][move.dest.x]
             
-            self.board[move.dest.y][move.dest.x] = prev
-            self.board[move.origin.y][move.origin.x] = .null
+            board[move.dest.y][move.dest.x] = prev
+            board[move.origin.y][move.origin.x] = .null
             
-            if isInCheck(light: lightTurn) {
+            if isInCheck(light: lightTurn, board: board) {
                 moves.remove(at: i)
             }
             
-            self.board[move.dest.y][move.dest.x] = dest
-            self.board[move.origin.y][move.origin.x] = prev
+            board[move.dest.y][move.dest.x] = dest
+            board[move.origin.y][move.origin.x] = prev
             
         }
         
     }
     
-    public func isInCheck(light : Bool) -> Bool {
+    public func isInCheck(light : Bool, board : [[Piece]]? = nil) -> Bool {
+        
+        let board = board ?? self.board
         
         let opposing = light != true
         
         do {
             
-            let kingPos = try findPiece(piece: .king(light))
+            let kingPos = try findPiece(piece: .king(light), board: board)
             
             // First, check for a threatening knight
             for change in self.knightChange {
@@ -374,7 +412,10 @@ class Chess {
         return false
     }
     
-    public func findPiece(piece: Piece) throws -> Point {
+    public func findPiece(piece: Piece, board: [[Piece]]? = nil) throws -> Point {
+        
+        let board = board ?? self.board
+        
         for r in 0..<board.count {
             for c in 0..<board[r].count {
                 if piece == board[r][c] {
