@@ -84,7 +84,11 @@ class Board : SKNode {
     
     public func toggleCheck(pos: Chess.Point? = nil) {
         
-        guard let pos = pos else { return }
+        guard let pos = pos else {
+            self.check?.removeFromParent()
+            self.check = nil
+            return
+        }
         
         if self.check == nil {
             self.check = SKShapeNode(circleOfRadius: self.size/8*0.4)
