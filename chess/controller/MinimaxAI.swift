@@ -24,7 +24,7 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = prev
             board[move.origin.y][move.origin.x] = .null
             
-            let result = minimax(depth: 3, board: board, isLight: isLight, α: Int.min, β: Int.max)
+            let result = minimax(depth: 4, board: board, isLight: isLight, α: Int.min, β: Int.max)
             
             if result > bestScore {
                 bestMove = move
@@ -33,6 +33,8 @@ class MinimaxAI : Player {
             
             board[move.dest.y][move.dest.x] = dest
             board[move.origin.y][move.origin.x] = prev
+            
+            print("Move \(board[move.origin.y][move.origin.x]) gives score \(result)")
             
         }
         
@@ -52,6 +54,7 @@ class MinimaxAI : Player {
         for r in 0..<board.count {
             for c in 0..<board[r].count {
                 value += board[r][c].getBaseValue()
+                value += getPieceSquare(piece: board[r][c], point: Chess.Point(c, r))
             }
         }
         
@@ -103,9 +106,93 @@ class MinimaxAI : Player {
         
     }
     
+    private func getPieceSquare(piece : Chess.Piece, point: Chess.Point) -> Int {
+        switch piece {
+        case .pawn(let l):
+            return pawnTable[l ? 0 : 7 - point.y][point.x] * (l ? 1 : -1)
+        case .bishop(let l):
+            return bishopTable[l ? 0 : 7 - point.y][point.x] * (l ? 1 : -1)
+        case .knight(let l):
+            return knightTable[l ? 0 : 7 - point.y][point.x] * (l ? 1 : -1)
+        case .rook(let l):
+            return rookTable[l ? 0 : 7 - point.y][point.x] * (l ? 1 : -1)
+        case .queen(let l):
+            return queenTable[l ? 0 : 7 - point.y][point.x] * (l ? 1 : -1)
+        case .king(let l):
+            return kingMidTable[l ? 0 : 7 - point.y][point.x] * (l ? 1 : -1)
+        default:
+            return 0
+        }
+    }
+    
     private(set) var isLight : Bool
     private(set) var chess : Chess
     
     private let depth = 2
+    
+    private let pawnTable = [[   0,   0,   0,   0,   0,   0,   0,   0],
+                             [  50,  50,  50,  50,  50,  50,  50,  50],
+                             [  10,  10,  20,  30,  30,  20,  10,  10],
+                             [   5,   5,  10,  25,  25,  10,   5,   5],
+                             [   0,   0,   0,  20,  20,   0,   0,   0],
+                             [   5,  -5, -10,   0,   0, -10,  -5,   5],
+                             [   5,  10,  10, -20, -20,  10,  10,   5],
+                             [   0,   0,   0,   0,   0,   0,   0,   0]]
+    
+    private let knightTable =  [[-50,-40,-30,-30,-30,-30,-40,-50],
+                                [-40,-20,  0,  0,  0,  0,-20,-40],
+                                [-30,  0, 10, 15, 15, 10,  0,-30],
+                                [-30,  5, 15, 20, 20, 15,  5,-30],
+                                [-30,  0, 15, 20, 20, 15,  0,-30],
+                                [-30,  5, 10, 15, 15, 10,  5,-30],
+                                [-40,-20,  0,  5,  5,  0,-20,-40],
+                                [-50,-40,-30,-30,-30,-30,-40,-50]]
+    
+    private let bishopTable =  [[-20,-10,-10,-10,-10,-10,-10,-20],
+                                [-10,  0,  0,  0,  0,  0,  0,-10],
+                                [-10,  0,  5, 10, 10,  5,  0,-10],
+                                [-10,  5,  5, 10, 10,  5,  5,-10],
+                                [-10,  0, 10, 10, 10, 10,  0,-10],
+                                [-10, 10, 10, 10, 10, 10, 10,-10],
+                                [-10,  5,  0,  0,  0,  0,  5,-10],
+                                [-20,-10,-10,-10,-10,-10,-10,-20]]
+    
+    private let rookTable =  [[0,  0,  0,  0,  0,  0,  0,  0],
+                              [5, 10, 10, 10, 10, 10, 10,  5],
+                              [-5,  0,  0,  0,  0,  0,  0, -5],
+                              [-5,  0,  0,  0,  0,  0,  0, -5],
+                              [-5,  0,  0,  0,  0,  0,  0, -5],
+                              [-5,  0,  0,  0,  0,  0,  0, -5],
+                              [-5,  0,  0,  0,  0,  0,  0, -5],
+                              [0,  0,  0,  5,  5,  0,  0,  0]]
+    
+    private let queenTable =  [[-20,-10,-10, -5, -5,-10,-10,-20],
+                               [-10,  0,  0,  0,  0,  0,  0,-10],
+                               [-10,  0,  5,  5,  5,  5,  0,-10],
+                               [-5,  0,  5,  5,  5,  5,  0, -5],
+                               [ 0,  0,  5,  5,  5,  5,  0, -5],
+                               [-10,  5,  5,  5,  5,  5,  0,-10],
+                               [-10,  0,  5,  0,  0,  0,  0,-10],
+                               [-20,-10,-10, -5, -5,-10,-10,-20]]
+    
+    private let kingMidTable =  [[-30,-40,-40,-50,-50,-40,-40,-30],
+                                 [-30,-40,-40,-50,-50,-40,-40,-30],
+                                 [-30,-40,-40,-50,-50,-40,-40,-30],
+                                 [-30,-40,-40,-50,-50,-40,-40,-30],
+                                 [-20,-30,-30,-40,-40,-30,-30,-20],
+                                 [-10,-20,-20,-20,-20,-20,-20,-10],
+                                 [20, 20,  0,  0,  0,  0, 20, 20],
+                                 [20, 30, 10,  0,  0, 10, 30, 20]]
+    
+    private let kingEndTable =  [[-50,-40,-30,-20,-20,-30,-40,-50],
+                                 [-30,-20,-10,  0,  0,-10,-20,-30],
+                                 [-30,-10, 20, 30, 30, 20,-10,-30],
+                                 [-30,-10, 30, 40, 40, 30,-10,-30],
+                                 [-30,-10, 30, 40, 40, 30,-10,-30],
+                                 [-30,-10, 20, 30, 30, 20,-10,-30],
+                                 [-30,-30,  0,  0,  0,  0,-30,-30],
+                                 [-50,-30,-30,-30,-30,-30,-30,-50]]
+    
+    
     
 }
