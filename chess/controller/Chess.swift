@@ -113,14 +113,18 @@ class Chess {
     }
     
     public func nextTurn() {
+        self.boardSprite.toggleCheck()
         if lightTurn {
             print("Light's turn")
-            return
+            if isInCheck(light: lightTurn) {
+                self.boardSprite.toggleCheck(pos: try? self.findPiece(piece: .king(true)))
+            }
         }
         else {
             print("Dark's turn")
             players[1].move()
         }
+        lightTurn = lightTurn != true
     }
     
     public func getMoves(x: Int, y: Int) throws -> [ChessMove]  {
@@ -383,8 +387,6 @@ class Chess {
         boardSprite.setBoard(board: board)
         
         boardSprite.contents[newX][newY]?.firstMove = false
-        
-        lightTurn = lightTurn != true
         
         nextTurn()
     }

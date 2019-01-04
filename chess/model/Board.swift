@@ -79,8 +79,24 @@ class Board : SKNode {
             hints.append(circle)
             
             self.addChild(circle)
+        }
+    }
+    
+    public func toggleCheck(pos: Chess.Point? = nil) {
+        
+        guard let pos = pos else { return }
+        
+        if self.check == nil {
+            self.check = SKShapeNode(circleOfRadius: self.size/8*0.4)
+            self.check!.strokeColor = SKColor.clear
+            self.check!.fillColor = SKColor.red
             
-            
+            self.check!.position = pointToCoordinate(pos)
+            self.addChild(self.check!)
+        }
+        else {
+            self.check?.removeFromParent()
+            self.check = nil
         }
     }
     
@@ -111,6 +127,8 @@ class Board : SKNode {
     
     private(set) var contents : [[Piece?]] = []
     
-    private(set) var hints : [SKShapeNode] = []
+    private var hints : [SKShapeNode] = []
+    
+    private var check : SKShapeNode? = nil
     
 }
