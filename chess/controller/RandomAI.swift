@@ -12,25 +12,25 @@ class RandomAI : Player {
     }
     
     override public func move() {
-        var x = Int.random(in: 0..<8)
-        var y = Int.random(in: 0..<8)
-        
-        while true {
-            
-            do {
-                let moves = try chess.getMoves(x: x, y: y)
-                guard !moves.isEmpty else { throw RandError.zeroMoves }
-                let move = moves[Int.random(in: 0..<moves.count)]
-                chess.updatePosition(oldX: x, oldY: y, newX: move.dest.x, newY: move.dest.y)
-            }
-            catch {
-                x = Int.random(in: 0..<8)
-                y = Int.random(in: 0..<8)
-                continue
-            }
-            break
-            
+
+        let moves = chess.getAllMoves()
+        guard !moves.isEmpty else {
+            print("Check/stalemate")
+            return
         }
+        
+        var attackMove : Chess.ChessMove? = nil
+        
+        for move in moves {
+            if move.attack {
+                attackMove = move
+                break
+            }
+        }
+        
+        let move = attackMove ?? moves[Int.random(in: 0..<moves.count)]
+        
+        chess.updatePosition(oldX: move.origin.x, oldY: move.origin.y, newX: move.dest.x, newY: move.dest.y) 
         
     }
     

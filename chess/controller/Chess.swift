@@ -98,7 +98,7 @@ class Chess {
         self.viewWidth = vw
         
         self.lightBottom = lb
-        self.lightTurn = true
+        self.lightTurn = false
         
         self.boardSprite = Board(size: self.viewWidth * 0.95)
         
@@ -110,9 +110,11 @@ class Chess {
         players.append(HumanPlayer())
         players.append(RandomAI(isLight: false, chess: self))
         
+        nextTurn()
     }
     
     public func nextTurn() {
+        lightTurn = lightTurn != true
         self.boardSprite.toggleCheck()
         if lightTurn {
             print("Light's turn")
@@ -124,7 +126,6 @@ class Chess {
             print("Dark's turn")
             players[1].move()
         }
-        lightTurn = lightTurn != true
     }
     
     public func getMoves(x: Int, y: Int) throws -> [ChessMove]  {
@@ -202,17 +203,20 @@ class Chess {
             }
             // Check for top left attack
             if x > 0 {
-                if !board[y+1][x-1].isLight && !board[y+1][x-1].isNull && self.lightTurn {
+                if board[y+1][x-1].isLight && !board[y+1][x-1].isNull && self.darkTurn {
                     moves.append(ChessMove(origin: origin, dest: Point(x - 1, y + 1), attack: true))
                 }
             }
             // Check for top right attack
             if x < 7 {
-                if !board[y+1][x+1].isLight && !board[y+1][x+1].isNull && self.lightTurn {
+                if board[y+1][x+1].isLight && !board[y+1][x+1].isNull && self.darkTurn {
                     moves.append(ChessMove(origin: origin, dest: Point(x + 1, y + 1), attack: true))
                 }
             }
         }
+        
+        self.pruneCheck(moves: &moves)
+        
     }
     
     private func findLineMoves(origin: Point, change : [[Int]], moves : inout [ChessMove]) {
@@ -272,7 +276,24 @@ class Chess {
         
     }
     
-    private func pruneCheck(origin : Point, moves: [ChessMove]) {
+    private func pruneCheck(moves: inout [ChessMove]) {
+        
+        for i in (0..<moves.count).reversed() {
+            let move = moves[i]
+            let prev = self.board[move.origin.y][move.origin.x]
+            let dest = self.board[move.dest.y][move.dest.x]
+            
+            self.board[move.dest.y][move.dest.x] = prev
+            self.board[move.origin.y][move.origin.x] = .null
+            
+            if isInCheck(light: lightTurn) {
+                moves.remove(at: i)
+            }
+            
+            self.board[move.dest.y][move.dest.x] = dest
+            self.board[move.origin.y][move.origin.x] = prev
+            
+        }
         
     }
     
@@ -286,14 +307,14 @@ class Chess {
             
             // First, check for a threatening knight
             for change in self.knightChange {
-                if board[kingPos.y + change[1]][kingPos.x+change[0]] == .knight(opposing) {
+                if inBounds(kingPos.x+change[0], kingPos.y + change[1]) && board[kingPos.y + change[1]][kingPos.x+change[0]] == .knight(opposing) {
                     return true
                 }
             }
             
             // Now, lets check for kings (this is only helpful for pruning)
             for change in self.eightChange {
-                if board[kingPos.y + change[1]][kingPos.x+change[0]] == .king(opposing) {
+                if inBounds(kingPos.x+change[0], kingPos.y + change[1]) && board[kingPos.y + change[1]][kingPos.x+change[0]] == .king(opposing) {
                     return true
                 }
             }
