@@ -164,6 +164,8 @@ class Chess {
             throw ChessError.somethingWrong
         }
         
+        self.pruneCheck(moves: &moves)
+        
         return moves
     }
     
@@ -214,8 +216,6 @@ class Chess {
                 }
             }
         }
-        
-        self.pruneCheck(moves: &moves)
         
     }
     
