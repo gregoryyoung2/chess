@@ -128,7 +128,8 @@ class Chess {
         
         
         players.append(HumanPlayer())
-        players.append(RandomAI(isLight: false, chess: self))
+//        players.append(RandomAI(isLight: false, chess: self))
+        players.append(MinimaxAI(isLight: false, chess: self))
         
         nextTurn()
     }
@@ -161,26 +162,26 @@ class Chess {
         
         switch board[y][x] {
         case .pawn:
-            print("Calculating moves for pawn...")
+//            print("Calculating moves for pawn...")
             findPawnMoves(origin: origin, moves: &moves, board: board)
         case .bishop:
-            print("Calculating moves for bishop...")
+//            print("Calculating moves for bishop...")
             findLineMoves(origin: origin, change: self.diagChange, moves: &moves, board: board)
             break
         case .knight:
-            print("Calculating moves for knight...")
+//            print("Calculating moves for knight...")
             findSingleMoves(origin: origin, change: self.knightChange, moves: &moves, board: board)
             break
         case .rook:
-            print("Calculating moves for rook...")
+//            print("Calculating moves for rook...")
             findLineMoves(origin: origin, change: self.plusChange, moves: &moves, board: board)
             break
         case .queen:
-            print("Calculating moves for queen...")
+//            print("Calculating moves for queen...")
             findLineMoves(origin: origin, change: self.eightChange, moves: &moves, board: board)
             break
         case .king:
-            print("Calculating moves for king...")
+//            print("Calculating moves for king...")
             findSingleMoves(origin: origin, change: self.eightChange, moves: &moves, board: board)
             break
         case .null:

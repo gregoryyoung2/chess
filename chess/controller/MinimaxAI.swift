@@ -11,15 +11,29 @@ class MinimaxAI : Player {
     
         let moves = chess.getAllMoves(forLight: isLight, board: nil)
         
+        var board = chess.board
+        
         var bestMove : Chess.ChessMove?
         var bestScore = Int.min
         
         for move in moves {
-            let result = minimax(depth: 0, board: chess.board, isLight: isLight)
+            
+            let prev = board[move.origin.y][move.origin.x]
+            let dest = board[move.dest.y][move.dest.x]
+            
+            board[move.dest.y][move.dest.x] = prev
+            board[move.origin.y][move.origin.x] = .null
+            
+            let result = minimax(depth: 2, board: board, isLight: isLight, α: Int.min, β: Int.max)
+            
             if result > bestScore {
                 bestMove = move
                 bestScore = result
             }
+            
+            board[move.dest.y][move.dest.x] = dest
+            board[move.origin.y][move.origin.x] = prev
+            
         }
         
         guard let move = bestMove else {
@@ -45,7 +59,7 @@ class MinimaxAI : Player {
         
     }
     
-    private func minimax(depth: Int, board: [[Chess.Piece]], isLight: Bool) -> Int {
+    private func minimax(depth: Int, board: [[Chess.Piece]], isLight: Bool, α alpha: Int, β beta: Int) -> Int {
         
         var board = board
         
@@ -65,12 +79,20 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = prev
             board[move.origin.y][move.origin.x] = .null
             
-            let result = minimax(depth: depth - 1, board: board, isLight: !isLight)
+            let result = minimax(depth: depth - 1, board: board, isLight: !isLight, α: alpha, β: beta)
+            
             
             bestMove = isLight ? max(bestMove, result) : min(bestMove, result)
             
             board[move.dest.y][move.dest.x] = dest
             board[move.origin.y][move.origin.x] = prev
+            
+            let alpha = isLight ? max(alpha, bestMove) : alpha
+            let beta = isLight ? beta : min(beta, bestMove)
+            
+            if beta <= alpha {
+                return bestMove
+            }
             
         }
         
