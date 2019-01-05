@@ -84,22 +84,19 @@ class GameScene: SKScene {
         
         guard let newCoord = self.chess?.getCoords(location.x, location.y) else { return }
         
-        guard let activeCoord = self.activeCoord else { return }
+//        guard let activeCoord = self.activeCoord else { return }
         
         for move in self.activeMoves {
             if move.dest.x == newCoord.x && move.dest.y == newCoord.y {
+                chess?.makeMove(move)
                 found = true
                 break
             }
         }
 
-        if found {
-            self.chess?.updatePosition(oldX: activeCoord.x, oldY: activeCoord.y, newX: newCoord.x, newY: newCoord.y)
-        }
-        else {
+        if !found {
             self.chess?.resetBoard()
         }
-        
         
         self.activePiece = nil
         self.activeMoves = []

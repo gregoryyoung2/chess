@@ -24,7 +24,7 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = prev
             board[move.origin.y][move.origin.x] = .null
             
-            let result = minimax(depth: 4, board: board, isLight: isLight, α: Int.min, β: Int.max)
+            let result = minimax(depth: 2, board: board, isLight: isLight, α: Int.min, β: Int.max)
             
             if result > bestScore {
                 bestMove = move
@@ -34,8 +34,7 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = dest
             board[move.origin.y][move.origin.x] = prev
             
-            print("Move \(board[move.origin.y][move.origin.x]) gives score \(result)")
-            
+//            print("Move \(board[move.origin.y][move.origin.x]) gives score \(result)")
         }
         
         guard let move = bestMove else {
@@ -43,7 +42,9 @@ class MinimaxAI : Player {
             return
         }
         
-        chess.updatePosition(oldX: move.origin.x, oldY: move.origin.y, newX: move.dest.x, newY: move.dest.y)
+        print("Best score: \(bestScore)")
+        
+        chess.makeMove(move)
         
     }
     

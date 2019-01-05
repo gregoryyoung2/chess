@@ -88,6 +88,20 @@ class Chess {
         case pieceNotFound
     }
     
+    struct ChessHistory {
+        
+        public init (move: ChessMove, first: Piece, second: Piece) {
+            self.first.pos = move.origin
+            self.first.piece = first
+            
+            self.second.pos = move.dest
+            self.second.piece = second
+        }
+        
+        var first: (pos: Point, piece: Piece)
+        var second: (pos: Point, piece: Piece)
+    }
+    
     struct Point {
         
         public init (_ x: Int, _ y: Int) {
@@ -407,7 +421,7 @@ class Chess {
             
         }
         catch {
-            print("ERROR: Could not find king")
+//            print("ERROR: Could not find king")
         }
         
         return false
@@ -444,14 +458,19 @@ class Chess {
         return val
     }
     
+    public func makeMove(_ move: ChessMove) {
+        
+        history.append(ChessHistory(move: move, first: board[move.origin.y][move.origin.x], second: board[move.dest.y][move.dest.x]))
+        
+        updatePosition(oldX: move.origin.x, oldY: move.origin.y, newX: move.dest.x, newY: move.dest.y)
+        
+        defer { nextTurn() }
+    }
+    
     public func updatePosition(oldX: Int, oldY: Int, newX: Int, newY: Int) {
         board[newY][newX] = board[oldY][oldX]
         board[oldY][oldX] = .null
         boardSprite.setBoard(board: board)
-        
-        boardSprite.contents[newX][newY]?.firstMove = false
-        
-        nextTurn()
     }
     
     public func resetBoard() {
@@ -503,7 +522,6 @@ class Chess {
     
     private(set) var boardSprite : Board
     
-    
     private(set) var lightTurn : Bool
    
     private(set) var lightBottom : Bool
@@ -514,6 +532,8 @@ class Chess {
     private(set) var board : [[Piece]] = []
    
     private(set) var players : [Player] = []
+    
+    private(set) var history: [ChessHistory] = []
     
     private let diagChange = [[1,1], [-1, 1], [-1,-1], [1,-1]]
     private let plusChange = [[0,1], [1,0], [-1, 0], [0, -1]]

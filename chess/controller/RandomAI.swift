@@ -30,7 +30,7 @@ class RandomAI : Player {
         
         let move = attackMove ?? moves[Int.random(in: 0..<moves.count)]
         
-        chess.updatePosition(oldX: move.origin.x, oldY: move.origin.y, newX: move.dest.x, newY: move.dest.y) 
+        chess.makeMove(move)
         
     }
     
