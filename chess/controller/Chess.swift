@@ -494,7 +494,7 @@ class Chess {
     private func initBoard() {
         
         if self.lightBottom {
-            self.board.append([.rook(false), .knight(false), .bishop(false), .queen(false), .king(false), .bishop(false), .knight(false), .rook(false)])
+            self.board.append([.rook(false), .knight(false), .bishop(false), .king(false), .queen(false), .bishop(false), .knight(false), .rook(false)])
         }
         else {
             self.board.append([.rook(true), .knight(true), .bishop(true), .king(true), .queen(true), .bishop(true), .knight(true), .rook(true)])
@@ -512,7 +512,7 @@ class Chess {
             self.board.append([.rook(true), .knight(true), .bishop(true), .king(true), .queen(true), .bishop(true), .knight(true), .rook(true)])
         }
         else {
-            self.board.append([.rook(false), .knight(false), .bishop(false), .queen(false), .king(false), .bishop(false), .knight(false), .rook(false)])
+            self.board.append([.rook(false), .knight(false), .bishop(false), .king(false), .queen(false), .bishop(false), .knight(false), .rook(false)])
         }
         
     }
