@@ -24,7 +24,7 @@ class MinimaxAI : Player {
             board[move.dest.y][move.dest.x] = prev
             board[move.origin.y][move.origin.x] = .null
             
-            let result = minimax(depth: 2, board: board, isLight: isLight, α: Int.min, β: Int.max)
+            let result = minimax(depth: 4, board: board, isLight: isLight, α: Int.min, β: Int.max)
             
             if result > bestScore {
                 bestMove = move
