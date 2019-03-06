@@ -23,7 +23,7 @@ class Board : SKNode {
             for x in 0..<8 {
                 let child = SKShapeNode(rectOf: CGSize(width: squareSize, height: squareSize))
                 child.position = CGPoint(x: -size/2.0 + CGFloat(x) * squareSize + squareSize/2, y: -size/2.0 + CGFloat(y) * squareSize + squareSize/2)
-                child.fillColor = squareIsLight ? SKColor(red: 1.0, green: 0.99, blue: 0.82, alpha: 1.0) : SKColor(red: 0.42, green: 0.27, blue: 0.23, alpha: 1.0)
+                child.fillColor = squareIsLight ? SKColor(red: 0.42, green: 0.27, blue: 0.23, alpha: 1.0) : SKColor(red: 1.0, green: 0.99, blue: 0.82, alpha: 1.0)
                 child.strokeColor = SKColor.clear
                 squareIsLight = squareIsLight != true
                 self.addChild(child)
